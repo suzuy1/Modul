@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panduan Modul Full-Stack Interaktif</title>
+    <!-- Chosen Palette: Earthy Tones (Beige background, Dark Green text, Terracotta accent) -->
+    <!-- Application Structure Plan: The application is structured as a single-page interactive guide. It uses a sticky top navigation bar for quick access to major sections: 'Ringkasan', 'Arsitektur Inti', 'Optimasi Performa', 'Keamanan Aplikasi', and 'Sumber Daya'. This non-linear navigation allows users to jump to specific topics of interest. Key interactions include expandable sections (accordions) for detailed information, a dynamic chart for comparing database types, and interactive cards for platform details. This structure was chosen to break down the comprehensive PDF content into digestible, explorable chunks, enhancing user engagement and comprehension by providing an interactive learning path. -->
+    <!-- Visualization & Content Choices:
+        - Report Info: Overview of the module. -> Goal: Inform. -> Viz/Method: Hero section with key takeaways. -> Interaction: None. -> Justification: Provides immediate context and purpose.
+        - Report Info: Frontend platforms (Vercel, Cloudflare Pages, Surge.sh). -> Goal: Inform/Compare. -> Viz/Method: Accordion for each platform with details. -> Interaction: Click to expand/collapse. -> Justification: Allows users to explore details of each platform without cluttering the page.
+        - Report Info: Backend platforms (Render, Serverless Functions). -> Goal: Inform. -> Viz/Method: Accordion for each platform. -> Interaction: Click to expand/collapse. Justification: Similar to frontend, provides detailed info on demand.
+        - Report Info: Database types (Relational, NoSQL) and specific platforms (Neon, Supabase, MongoDB Atlas, Firestore). -> Goal: Inform/Compare. -> Viz/Method: Accordions for each platform, plus a Chart.js bar chart comparing storage/transfer limits. -> Interaction: Click to expand/collapse accordions, chart updates based on selected database types (conceptually). -> Justification: Visual comparison of database tiers helps in decision-making, while accordions keep details organized.
+        - Report Info: Performance Optimization techniques. -> Goal: Inform. -> Viz/Method: Accordion for each technique. -> Interaction: Click to expand/collapse. -> Justification: Presents complex technical details in manageable segments.
+        - Report Info: Security practices. -> Goal: Inform. -> Viz/Method: Accordion for each practice. -> Interaction: Click to expand/collapse. -> Justification: Ensures critical security information is accessible but not overwhelming.
+        - Report Info: Supporting resources/tools. -> Goal: Inform. -> Viz/Method: Accordion for each category of tools. -> Interaction: Click to expand/collapse. -> Justification: Organizes a long list of resources into logical categories.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F5F5DC; /* Beige */
+            color: #2F4F4F; /* Dark Slate Gray */
+        }
+        .nav-link {
+            position: relative;
+            transition: color 0.3s;
+        }
+        .nav-link:hover {
+            color: #CD5C5C; /* Indian Red / Terracotta accent */
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #CD5C5C;
+            transition: width 0.3s;
+        }
+        .nav-link:hover::after, .nav-link.active::after {
+            width: 100%;
+        }
+        .btn-accent {
+            background-color: #CD5C5C;
+            color: white;
+            transition: background-color 0.3s, transform 0.2s;
+            white-space: nowrap;
+            padding-left: 2rem;
+            padding-right: 2rem;
+            display: inline-block;
+        }
+        .btn-accent:hover {
+            background-color: #B22222; /* Firebrick */
+            transform: translateY(-2px);
+        }
+        .card {
+            background-color: #FFF8DC; /* Cornsilk */
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: 1px solid #D2B48C; /* Tan */
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 20px rgba(0, 0, 0, 0.08);
+        }
+        .accordion-header {
+            background-color: #FAEBD7; /* AntiqueWhite */
+            border-bottom: 1px solid #D2B48C;
+        }
+        .accordion-item:last-child .accordion-header {
+            border-bottom: none;
+        }
+        /* Animasi Akordeon */
+        .accordion-content {
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-out, opacity 0.5s ease-out, padding 0.5s ease-out;
+            padding: 0 1rem; /* Initial horizontal padding, vertical padding is 0 */
+        }
+        .accordion-content.open {
+            opacity: 1;
+            padding: 1rem; /* Apply full padding when open */
+        }
+        .accordion-icon {
+            transition: transform 0.3s ease-out;
+        }
+        .accordion-icon.rotate-45 {
+            transform: rotate(45deg);
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 45vh;
+        }
+    </style>
+</head>
+<body>
+
+    <header id="header" class="bg-[#F5F5DC]/80 backdrop-blur-sm sticky top-0 z-50 shadow-sm">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="#" class="text-2xl font-bold text-[#2F4F4F]">Modul<span class="text-[#CD5C5C]">Interaktif</span></a>
+            <div class="hidden md:flex items-center space-x-8">
+                <a href="#ringkasan" class="nav-link">Ringkasan</a>
+                <a href="#arsitektur-inti" class="nav-link">Arsitektur Inti</a>
+                <a href="#optimasi-performa" class="nav-link">Optimasi Performa</a>
+                <a href="#keamanan-aplikasi" class="nav-link">Keamanan Aplikasi</a>
+                <a href="#sumber-daya" class="nav-link">Sumber Daya</a>
+            </div>
+            <a href="#ringkasan" class="hidden md:block px-6 py-2 rounded-full btn-accent">Mulai Jelajah</a>
+        </nav>
+    </header>
+
+    <main class="container mx-auto px-6 py-8 md:py-16">
+        
+        <section id="ringkasan" class="text-center mb-24 scroll-mt-20">
+            <h1 class="text-4xl md:text-6xl font-bold mb-4 leading-tight">Panduan Komprehensif: Membangun Aplikasi Modern</h1>
+            <p class="text-lg md:text-xl max-w-3xl mx-auto text-gray-600 mb-8">
+                Jelajahi strategi lengkap untuk membangun, mendeploy, dan mengelola aplikasi web modern dengan memanfaatkan layanan Free Tier (gratis) yang tersedia di pasaran, namun tetap mencapai standar performa tinggi, keamanan terjamin, dan desain yang premium.
+            </p>
+            <a href="#arsitektur-inti" class="px-8 py-4 rounded-full text-lg font-semibold btn-accent shadow-lg inline-block">Mulai Jelajahi Arsitektur</a>
+        </section>
+
+        <section id="arsitektur-inti" class="mb-24 scroll-mt-20">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold">Arsitektur Inti Aplikasi: Fondasi yang Kuat</h2>
+                <p class="text-lg text-gray-600 max-w-2xl mx-auto mt-2">Fondasi aplikasi modern terletak pada pemisahan yang jelas antara frontend, backend (API), dan database. Memilih platform yang tepat untuk masing-masing pilar ini adalah kunci untuk memaksimalkan fitur gratis tanpa mengorbankan kualitas.</p>
+            </div>
+
+            <div class="space-y-12">
+                <!-- Frontend Section -->
+                <div class="card p-8">
+                    <h3 class="text-2xl font-bold mb-6 text-[#2F4F4F]">1. Frontend: Wajah Aplikasi yang Super Cepat</h3>
+                    <p class="text-gray-600 mb-6">Untuk pengalaman pengguna yang instan dan global, pilihan platform yang didukung CDN sangat krusial. Klik untuk melihat detail platform.</p>
+                    <div id="frontend-accordion" class="space-y-4"></div>
+                </div>
+
+                <!-- Backend Section -->
+                <div class="card p-8">
+                    <h3 class="text-2xl font-bold mb-6 text-[#2F4F4F]">2. Backend (API): Otak Aplikasi yang Fleksibel</h3>
+                    <p class="text-gray-600 mb-6">Untuk memproses logika bisnis dan menyediakan data, fleksibilitas dan efisiensi adalah kunci. Klik untuk melihat detail platform.</p>
+                    <div id="backend-accordion" class="space-y-4"></div>
+                </div>
+
+                <!-- Database Section -->
+                <div class="card p-8">
+                    <h3 class="text-2xl font-bold mb-6 text-[#2F4F4F]">3. Database: Jantung Data yang Gratis dan Tahan Lama</h3>
+                    <p class="text-gray-600 mb-6">Untuk penyimpanan dan pengelolaan data yang andal dan berkelanjutan. Klik untuk melihat detail platform database dan perbandingan.</p>
+                    <div id="database-accordion" class="space-y-4 mb-8"></div>
+                    <h4 class="text-xl font-bold text-center mb-4">Perbandingan Fitur Free Tier Database Utama</h4>
+                    <div class="chart-container">
+                        <canvas id="databaseChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="optimasi-performa" class="mb-24 scroll-mt-20">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold">II. Optimasi Performa Aplikasi: Kecepatan adalah Kunci!</h2>
+                <p class="text-lg text-gray-600 max-w-2xl mx-auto mt-2">Meskipun menggunakan layanan gratis, aplikasi Anda harus tetap cepat dan responsif untuk pengalaman pengguna yang premium.</p>
+            </div>
+            <div id="performance-accordion" class="max-w-4xl mx-auto space-y-4"></div>
+        </section>
+
+        <section id="keamanan-aplikasi" class="mb-24 scroll-mt-20">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold">III. Keamanan Aplikasi: Jangan Pernah Kompromi!</h2>
+                <p class="text-lg text-gray-600 max-w-2xl mx-auto mt-2">Keamanan adalah prioritas utama untuk melindungi data pengguna dan integritas aplikasi Anda.</p>
+            </div>
+            <div id="security-accordion" class="max-w-4xl mx-auto space-y-4"></div>
+        </section>
+
+        <section id="sumber-daya" class="scroll-mt-20">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold">IV. Sumber Daya dan Tools Pendukung (Amunisi Tambahan)</h2>
+                <p class="text-lg text-gray-600 max-w-2xl mx-auto mt-2">Daftar alat dan platform gratis yang akan melengkapi alur kerja pengembangan Anda.</p>
+            </div>
+            <div id="resources-accordion" class="max-w-4xl mx-auto space-y-4"></div>
+        </section>
+
+    </main>
+    
+    <footer class="bg-[#FFF8DC] mt-24">
+        <div class="container mx-auto px-6 py-8 text-center text-gray-500">
+            <p>Dibuat sebagai Panduan Interaktif berdasarkan Modul "Gratisan Rasa Premium".</p>
+            <p>&copy; 2025. Dirancang untuk pembelajaran.</p>
+        </div>
+    </footer>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const frontendData = [
+        { title: 'Vercel', content: 'Kelebihan Utama: Dikenal dengan Global Edge Network (CDN) yang luas, memastikan aset frontend disajikan dari lokasi server terdekat dengan pengguna, menghasilkan loading yang hampir instan. Fitur Free Tier: 100 GB bandwidth/bulan, SSL otomatis, Custom Domains, integrasi Git mulus, dan Serverless Functions bawaan. Ideal untuk: Aplikasi Single Page Applications (SPA), situs statis, blog, portofolio online, dan landing page.' },
+        { title: 'Cloudflare Pages', content: 'Kelebihan Utama: Memanfaatkan jaringan CDN Cloudflare yang masif, menawarkan performa global yang paling cepat untuk static assets. Fitur Free Tier: Unlimited Sites & Unlimited Requests, 100 GB bandwidth/bulan, 500 build minutes/bulan, Cloudflare Functions (Serverless), SSL otomatis, Custom Domains. Ideal untuk: Alternatif kuat untuk Vercel/Netlify jika prioritas utama adalah delivery aset frontend secepat mungkin.' },
+        { title: 'Surge.sh', content: 'Kelebihan Utama: Sangat minimalis, memungkinkan deployment Static Sites langsung dari command line dengan sangat cepat. Fitur Free Tier: Unlimited Projects, Custom Domains, SSL otomatis. Ideal untuk: Proyek super sederhana (HTML/CSS/JS murni), prototipe cepat, atau landing page yang tidak memerlukan build process kompleks.' }
+    ];
+
+    const backendData = [
+        { title: 'Render', content: 'Kelebihan Utama: Fleksibel mendukung berbagai bahasa dan framework backend populer seperti Node.js, Python, Ruby, Go. Integrasi Git mempermudah deployment otomatis. Fitur Free Tier: 750 jam instance gratis/bulan (layanan akan spin down jika idle dan ada cold start), 100 GB bandwidth/bulan, SSL otomatis, Custom Domains. Ideal untuk: Membangun RESTful API atau GraphQL API, layanan mikro, dan backend untuk aplikasi web yang tidak membutuhkan instance always-on.' },
+        { title: 'Serverless Functions / FaaS', content: 'Opsi Tambahan: Untuk backend yang lebih ringan atau spesifik, fitur serverless functions bawaan dari platform frontend bisa menjadi pilihan efisien. Contoh: Vercel Serverless Functions (Node.js, Go, Python, Ruby) cocok untuk form submissions sederhana, otentikasi ringan, atau webhook. Cloudflare Workers/Functions berjalan di edge network Cloudflare dengan latensi sangat rendah, ideal untuk rate limiting atau API yang sangat ringan.' }
+    ];
+
+    const databaseData = [
+        { title: 'Neon (PostgreSQL)', content: 'Kelebihan Utama: Layanan database PostgreSQL serverless revolusioner. Arsitekturnya memisahkan komputasi dan penyimpanan, memungkinkan skalabilitas otomatis dan efisiensi biaya. Free Tier: 10 GB penyimpanan gratis, 10 GB transfer data gratis, Unlimited Branches. Ideal untuk: Semua proyek yang membutuhkan database PostgreSQL yang handal, scalable, dan gratis untuk jangka panjang.' },
+        { title: 'Supabase (PostgreSQL)', content: 'Kelebihan Utama: Mirip Firebase tapi dibangun di atas PostgreSQL dan open-source. Menyediakan otentikasi, storage, dan real-time subscriptions. Free Tier: Sangat generous untuk PostgreSQL (500 MB database, 1 GB storage file, 2 GB transfer data per bulan) dan tidak ada batasan waktu. Cocok untuk: Proyek yang ingin solusi backend-as-a-service lengkap dengan PostgreSQL sebagai intinya.' },
+        { title: 'Railway (PostgreSQL, MySQL, Redis, MongoDB)', content: 'Kelebihan Utama: Platform deployment yang sangat fleksibel, juga punya layanan database terkelola. Free Tier: Lumayan untuk database (500 MB disk, 100 jam CPU, 100 GB transfer data) dengan batasan waktu yang lebih fleksibel. Cocok untuk: Kamu yang mungkin ingin deploy backend dan databasenya di platform yang sama, atau mencari fleksibilitas database yang beragam.' },
+        { title: 'PlanetScale (MySQL/MariaDB)', content: 'Kelebihan Utama: Database relasional berbasis MySQL/MariaDB dengan fitur branching seperti Git. Free Tier: 1 branch, 10GB row reads/sec. Cocok untuk: Proyek yang membutuhkan database MySQL dengan fitur modern yang mendukung alur kerja developer.' },
+        { title: 'MongoDB Atlas (NoSQL)', content: 'Kelebihan Utama: Database dokumen NoSQL yang paling populer, layanan managed MongoDB dari pembuatnya. Free Tier (MO Cluster): Menyediakan klaster database gratis dengan 512 MB penyimpanan dan tidak ada batasan waktu. Cocok untuk: Proyek yang datanya tidak terstruktur atau semi-terstruktur.' },
+        { title: 'Firebase Firestore / Realtime Database (NoSQL)', content: 'Kelebihan Utama: Database dokumen NoSQL dari Google, populer di kalangan mobile dan web developer. Serverless dan punya sinkronisasi real-time. Free Tier ("Spark Plan"): Sangat generous dengan 1 GB penyimpanan data, 10 GB storage file, dan banyak kuota baca/tulis/hapus per hari. Cocok untuk: Proyek yang membutuhkan fitur real-time, autentikasi mudah, atau backend yang didominasi oleh operasi client-side.' },
+        { title: 'RedisLabs / Redis Enterprise Cloud (In-memory)', content: 'Kelebihan Utama: Database in-memory yang sangat cepat, sering digunakan untuk caching, session management, leaderboards, atau real-time analytics. Free Tier: Menyediakan instance Redis gratis dengan batasan memori (misal: 30MB atau 50MB). Cocok untuk: Menambahkan lapisan caching untuk meningkatkan performa.' }
+    ];
+
+    const databaseChartData = {
+        labels: ['Neon (Penyimpanan)', 'Neon (Transfer)', 'Supabase (DB)', 'Supabase (Storage)', 'Supabase (Transfer)', 'MongoDB Atlas (Penyimpanan)'],
+        data: [10, 10, 0.5, 1, 2, 0.5], // GB for storage/transfer
+        backgroundColor: ['#CD5C5C', '#CD5C5C', '#D2B48C', '#D2B48C', '#D2B48C', '#A9A9A9'], // Terracotta, Tan, DarkGray
+        borderColor: ['#8B0000', '#8B0000', '#8B4513', '#8B4513', '#8B4513', '#696969'] // DarkRed, SaddleBrown, DimGray
+    };
+
+    const performanceData = [
+        { title: 'Minifikasi Kode', content: 'Tujuan: Mengurangi ukuran file kode (HTML, CSS, JavaScript) dengan menghapus spasi, komentar, dan karakter yang tidak perlu. Manfaat: Mempercepat waktu unduh aset oleh browser, mengurangi bandwidth. Implementasi: Sebagian besar build tools modern (Webpack, Vite) dan framework (Next.js) sudah otomatis melakukan ini.' },
+        { title: 'Kompresi dan Optimasi Gambar', content: 'Tujuan: Mengurangi ukuran file gambar tanpa mengorbankan kualitas visual secara signifikan. Manfaat: Gambar seringkali menjadi bottleneck terbesar dalam loading situs. Implementasi: Gunakan tools online seperti TinyPNG atau Compressor.io. Pertimbangkan format modern seperti WebP atau AVIF.' },
+        { title: 'Caching dan CDN (Content Delivery Network)', content: 'Tujuan: Menyimpan salinan aset aplikasi di berbagai lokasi geografis (CDN) dan di browser pengguna (browser caching). Manfaat: Mengurangi beban server asal, mempercepat pengiriman aset. Implementasi: Vercel, Cloudflare Pages, Render secara otomatis menyediakan CDN.' },
+        { title: 'Lazy Loading & Code Splitting', content: 'Tujuan: Menunda pemuatan aset (gambar, video, komponen JavaScript) hingga benar-benar dibutuhkan. Code splitting memecah bundel kode menjadi bagian-bagian yang lebih kecil. Manfaat: Mengurangi initial load time dan bandwidth. Implementasi: Atribut loading="lazy" pada <img>, dynamic import untuk JS.' },
+        { title: 'Optimasi Font', content: 'Tujuan: Memastikan font dimuat secara efisien untuk menghindari layout shifts atau invisible text. Manfaat: Meningkatkan perceived performance. Implementasi: Gunakan font-display: swap; di CSS.' }
+    ];
+
+    const securityData = [
+        { title: 'Validasi Input (di Backend API)', content: 'Tujuan: Memastikan setiap data yang diterima oleh API adalah valid, sesuai format, dan aman. Manfaat: First line of defense terhadap serangan injeksi (SQL Injection) dan bug. Implementasi: Gunakan library validasi yang kuat (misal: Joi atau Yup untuk Node.js).' },
+        { title: 'Sanitasi Output (di Frontend)', content: 'Tujuan: Membersihkan data yang akan ditampilkan di frontend, terutama dari input pengguna. Manfaat: Mencegah serangan Cross-Site Scripting (XSS). Implementasi: Gunakan sanitization library yang sesuai dengan framework frontend Anda.' },
+        { title: 'HTTPS (SSL/TLS)', content: 'Tujuan: Mengenkripsi semua komunikasi antara browser pengguna dan server Anda. Manfaat: Melindungi data sensitif dari penyadapan. Implementasi: Vercel, Cloudflare Pages, Render secara otomatis menyediakan sertifikat SSL gratis.' },
+        { title: 'Environment Variables', content: 'Tujuan: Menyimpan informasi sensitif (password database, API Keys) di lingkungan server, bukan di kode sumber. Manfaat: Mencegah kebocoran kredensial. Implementasi: Platform seperti Render memiliki dashboard khusus untuk mengelola Environment Variables.' },
+        { title: 'CORS (Cross-Origin Resource Sharing)', content: 'Tujuan: Mekanisme keamanan browser yang mengatur domain mana saja yang diizinkan untuk memanggil API Anda. Manfaat: Mencegah domain yang tidak dikenal atau jahat menyalahgunakan API Anda. Implementasi: Konfigurasi header CORS di sisi API Anda.' },
+        { title: 'Rate Limiting (Opsional untuk API)', content: 'Tujuan: Membatasi jumlah permintaan API dari IP atau pengguna tertentu. Manfaat: Mencegah serangan Denial of Service (DoS) sederhana atau penggunaan berlebihan. Implementasi: Banyak framework API memiliki middleware atau library untuk rate limiting.' },
+        { title: 'Content Security Policy (CSP)', content: 'Tujuan: Lapisan keamanan tambahan yang membantu mendeteksi dan mengurangi jenis serangan XSS dan injeksi data. Manfaat: Mencegah eksekusi skrip berbahaya dari sumber yang tidak dipercaya. Implementasi: Ditambahkan sebagai header HTTP atau elemen <meta>.' },
+        { title: 'HTTPS Strict Transport Security (HSTS)', content: 'Tujuan: Memaksa browser untuk selalu menggunakan HTTPS untuk domain Anda. Manfaat: Melindungi dari serangan downgrade protokol. Implementasi: Dikonfigurasi sebagai header HTTP Strict-Transport-Security.' },
+        { title: 'Authentication & Authorization', content: 'Authentication: Proses memverifikasi identitas pengguna (siapa Anda?). Authorization: Proses menentukan hak akses pengguna (apa yang bisa Anda lakukan?). Penting: Memahami perbedaan ini krusial saat membangun fitur login dan manajemen pengguna.' }
+    ];
+
+    const resourcesData = [
+        { title: 'Desain UI/UX', content: 'Figma (wireframing, mockup), Unsplash/Pexels/Pixabay (foto bebas royalti), Google Fonts, Radix UI/Shaden UI (component libraries React), Heroicons/Font Awesome (ikon vektor), Undraw (ilustrasi vektor).' },
+        { title: 'Monitoring & Analitik', content: 'Google Analytics (metrik pengunjung), Sentry (Error Tracking real-time), UptimeRobot (memantau ketersediaan aplikasi), Google Search Console (SEO).' },
+        { title: 'Otomatisasi & CI/CD', content: 'GitHub Actions (mengotomatisasi testing kode, linting, dan proses deployment ke Vercel/Render/Cloudflare Pages).' },
+        { title: 'Domain & SSL Tambahan', content: 'Freenom (domain gratis), Cloudflare (DNS manager, CDN dasar, perlindungan DDoS, Universal SSL gratis).' },
+        { title: 'Belajar Coding', content: 'FreeCodeCamp/The Odin Project (kurikulum web development), MDN Web Docs (referensi HTML, CSS, JS), YouTube Channels (Traversy Media, Web Dev Simplied, Fireship, Net Ninja).' },
+        { title: 'Kontrol Versi', content: 'GitHub/GitLab/Bitbucket (Free Private Repositories: menyimpan kode, melacak perubahan, berkolaborasi).' },
+        { title: 'Email Transaksional', content: 'Mailgun (5.000 email gratis/bulan selama 3 bulan pertama), SendGrid (100 email gratis/hari).' },
+        { title: 'Integrated Development Environment (IDE)', content: 'Visual Studio Code (IDE paling populer dan kaya fitur untuk web development).' }
+    ];
+
+    function createAccordion(containerId, data) {
+        const container = document.getElementById(containerId);
+        data.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'accordion-item bg-[#FFF8DC] rounded-lg shadow-sm border border-[#D2B48C]';
+            // Perbaikan HTML: Hapus kelas 'p-4' dari accordion-content di sini
+            div.innerHTML = `
+                <div class="accordion-header flex justify-between items-center p-4 cursor-pointer">
+                    <h4 class="font-semibold text-lg">${item.title}</h4>
+                    <span class="accordion-icon text-2xl text-[#CD5C5C] transform transition-transform">+</span>
+                </div>
+                <div class="accordion-content border-t border-[#D2B48C]">
+                    <p class="text-gray-600">${item.content}</p>
+                </div>
+            `;
+            container.appendChild(div);
+        });
+
+        container.addEventListener('click', e => {
+            const header = e.target.closest('.accordion-header');
+            if (header) {
+                const content = header.nextElementSibling;
+                const icon = header.querySelector('.accordion-icon');
+
+                // Toggle the 'open' class
+                content.classList.toggle('open');
+                icon.classList.toggle('rotate-45');
+
+                if (content.classList.contains('open')) {
+                    // Saat membuka: atur max-height ke scrollHeight untuk transisi
+                    content.style.maxHeight = content.scrollHeight + 'px';
+                    // Setelah transisi selesai, atur max-height ke 'auto' untuk memastikan konten penuh terlihat
+                    // dan tangani perubahan ukuran konten di masa mendatang
+                    content.addEventListener('transitionend', function handler() {
+                        content.style.maxHeight = 'none';
+                        content.removeEventListener('transitionend', handler);
+                    });
+                } else {
+                    // Saat menutup: atur max-height ke scrollHeight saat ini, lalu ke 0
+                    content.style.maxHeight = content.scrollHeight + 'px';
+                    requestAnimationFrame(() => {
+                        content.style.maxHeight = '0px';
+                    });
+                }
+            }
+        });
+    }
+
+    createAccordion('frontend-accordion', frontendData);
+    createAccordion('backend-accordion', backendData);
+    createAccordion('database-accordion', databaseData);
+    createAccordion('performance-accordion', performanceData);
+    createAccordion('security-accordion', securityData);
+    createAccordion('resources-accordion', resourcesData);
+
+    let databaseChart;
+
+    function renderDatabaseChart() {
+        const ctx = document.getElementById('databaseChart').getContext('2d');
+        if (databaseChart) {
+            databaseChart.destroy();
+        }
+        databaseChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: databaseChartData.labels.map(label => {
+                    const words = label.split(' ');
+                    let wrappedLabel = '';
+                    let currentLine = '';
+                    for (let i = 0; i < words.length; i++) {
+                        if ((currentLine + words[i]).length > 16 && currentLine.length > 0) {
+                            wrappedLabel += currentLine.trim() + '\n';
+                            currentLine = words[i] + ' ';
+                        } else {
+                            currentLine += words[i] + ' ';
+                        }
+                    }
+                    wrappedLabel += currentLine.trim();
+                    return wrappedLabel;
+                }),
+                datasets: [{
+                    label: 'Kapasitas Free Tier (GB)',
+                    data: databaseChartData.data,
+                    backgroundColor: databaseChartData.backgroundColor,
+                    borderColor: databaseChartData.borderColor,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return ` ${context.raw} GB`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Kapasitas (GB)'
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            autoSkip: false,
+                            maxRotation: 45,
+                            minRotation: 0
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    renderDatabaseChart();
+
+    const navLinks = document.querySelectorAll('.nav-link');
+    const sections = document.querySelectorAll('section');
+
+    window.onscroll = () => {
+        let current = '';
+        sections.forEach(section => {
+            const sectionTop = section.offsetTop;
+            if (pageYOffset >= sectionTop - 100) {
+                current = section.getAttribute('id');
+            }
+        });
+
+        navLinks.forEach(link => {
+            link.classList.remove('active');
+            if (link.getAttribute('href').includes(current)) {
+                link.classList.add('active');
+            }
+        });
+    };
+});
+</script>
+
+</body>
+</html>
